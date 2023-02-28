@@ -13,7 +13,8 @@ public class Tests : PageTest
     [SetUp]
     public async Task Setup()
     {
-        await Page.GotoAsync("http://localhost:5215/");
+        var baseUrl = Environment.GetEnvironmentVariable("SITE_BASE_URL") ?? "http://localhost:5215/";
+        await Page.GotoAsync(baseUrl);
     }
 
     [Test]
