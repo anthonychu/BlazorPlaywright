@@ -25,11 +25,7 @@ jobs:
           dotnet-version: 7.0.x
       - run: dotnet build
       - name: Ensure browsers are installed
-        run: pwsh bin\Debug\net6.0\playwright.ps1 install --with-deps
-      - name: Run your tests
-        run: dotnet test
-        env:
-          SITE_BASE_URL: https://happy-hill-0aa8b941e.2.azurestaticapps.net/
+        run: pwsh bin\Debug\net7.0\playwright.ps1 install --with-deps
 
       - name: Build And Deploy
         id: builddeploy
@@ -44,6 +40,11 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "wwwroot" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+
+      - name: Run Playwright tests
+        run: dotnet test
+        env:
+          SITE_BASE_URL: https://happy-hill-0aa8b941e.2.azurestaticapps.net/
 
         
   close_pull_request_job:
