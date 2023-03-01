@@ -19,14 +19,6 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 7.0.x
-      - run: dotnet build
-      - name: Ensure browsers are installed
-        run: pwsh MyApp.Tests/bin/Debug/net7.0/playwright.ps1 install --with-deps
-
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -41,14 +33,14 @@ jobs:
           output_location: "wwwroot" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
 
-  test_linux:
+  test_matrix:
     name: ${{ matrix.os }} (${{ matrix.browser }})
     needs: build_and_deploy_job
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
-        os: [ubuntu-22.04]
+        os: [ubuntu-22.04, macos-12, windows-2022]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
