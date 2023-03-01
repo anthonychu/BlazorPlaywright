@@ -14,6 +14,9 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+    outputs:
+      static_web_app_url: ${{ steps.builddeploy.outputs.static_web_app_url }}
+
     steps:
       - uses: actions/checkout@v2
         with:
@@ -36,6 +39,7 @@ jobs:
   test_matrix:
     name: ${{ matrix.os }} (${{ matrix.browser }})
     needs: build_and_deploy_job
+    if: matrix.os != 'windows-2022' && matrix.browser != 'webkit' # Windows WebKit doesn't support WebAssembly
     strategy:
       fail-fast: false
       matrix:
@@ -60,7 +64,7 @@ jobs:
       - name: Run Playwright tests
         run: dotnet test
         env:
-          SITE_BASE_URL: https://happy-hill-0aa8b941e.2.azurestaticapps.net/
+          SITE_BASE_URL: ${{ needs.build_and_deploy_job.outputs.static_web_app_url }}
           BROWSER: ${{ matrix.browser }}
           HEADED: 0
 
