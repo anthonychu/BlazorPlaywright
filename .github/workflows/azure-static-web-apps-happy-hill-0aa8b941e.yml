@@ -39,12 +39,15 @@ jobs:
   test_matrix:
     name: ${{ matrix.os }} (${{ matrix.browser }})
     needs: build_and_deploy_job
-    if: matrix.os != 'windows-2022' && matrix.browser != 'webkit' # Windows WebKit doesn't support WebAssembly
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox, webkit]
         os: [ubuntu-22.04, macos-12, windows-2022]
+        exclude:
+          # Windows WebKit doesn't support WebAssembly
+          - os: windows-2022
+            browser: webkit
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
