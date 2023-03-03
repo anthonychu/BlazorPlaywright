@@ -65,11 +65,21 @@ jobs:
         run: pwsh MyApp.Tests/bin/Debug/net7.0/playwright.ps1 install --with-deps ${{ matrix.browser }}
 
       - name: Run Playwright tests
-        run: dotnet test
+        run: |
+            
+            dotnet test
         env:
           SITE_BASE_URL: ${{ needs.build_and_deploy_job.outputs.static_web_app_url }}
           BROWSER: ${{ matrix.browser }}
           HEADED: 0
+          TRACE_PATH: ${{ GITHUB_WORKSPACE }}
+    
+      - name: Upload traces to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }} (${{ matrix.browser }})
+          path: |
+            *.zip
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

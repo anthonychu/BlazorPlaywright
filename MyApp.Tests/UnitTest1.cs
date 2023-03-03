@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
@@ -10,6 +11,14 @@ namespace PlaywrightTests;
 [TestFixture]
 public class Tests : PageTest
 {
+    string _tracePath = "";
+    bool _traceEnabled = false;
+    public Tests()
+    {
+        _tracePath = Environment.GetEnvironmentVariable("TRACE_PATH") ?? "";
+        _traceEnabled = !string.IsNullOrEmpty(_tracePath);
+    }
+
     [SetUp]
     public async Task Setup()
     {
@@ -39,6 +48,16 @@ public class Tests : PageTest
     [Test]
     public async Task FetchDataWorks()
     {
+        if (_traceEnabled)
+        {
+            await Page.Context.Tracing.StartAsync(new()
+            {
+                Screenshots = true,
+                Snapshots = true,
+                Sources = true,
+            });
+        }
+
         var jsonText = @"[
             {
             ""date"": ""2022-01-06"",
@@ -82,5 +101,14 @@ public class Tests : PageTest
         Assert.That(rows.Count, Is.EqualTo(5));
 
         await Expect(Page.Locator("#app > div > main > article > table > tbody > tr:nth-child(1) > td:nth-child(4)")).ToHaveTextAsync("Freezing");
+
+        if (_traceEnabled)
+        {
+            await Page.Context.Tracing.StopAsync(new()
+            {
+                Path = Path.Combine(_tracePath, $"{nameof(FetchDataWorks)}.zip"),
+            });
+        }
     }
+
 }
