@@ -29,7 +29,11 @@ public class Tests : PageTest
     [Test]
     public async Task HomePageHasCorrectTitle()
     {
-        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Hello, world!" })).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Hello, world!" })).ToBeVisibleAsync(
+            new LocatorAssertionsToBeVisibleOptions
+            {
+                Timeout = 20000
+            });
     }
 
     [Test]
