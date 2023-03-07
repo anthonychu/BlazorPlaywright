@@ -14,6 +14,8 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+    outputs:
+      static_web_app_url: ${{ steps.builddeploy.outputs.static_web_app_url }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -31,6 +33,51 @@ jobs:
           api_location: "" # Api source code path - optional
           output_location: "wwwroot" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
+          
+  playwright_tests:
+    name: ${{ matrix.os }} (${{ matrix.browser }})
+    needs: build_and_deploy_job
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        os: [ubuntu-22.04, macos-12, windows-2022]
+        exclude:
+          # Windows WebKit doesn't support WebAssembly
+          - os: windows-2022
+            browser: webkit
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      - run: dotnet build
+
+      - name: Ensure browsers are installed
+        run: pwsh MyApp.Tests/bin/Debug/net7.0/playwright.ps1 install --with-deps ${{ matrix.browser }}
+
+      - name: Run Playwright tests
+        run: |
+            
+            dotnet test
+        env:
+          SITE_BASE_URL: ${{ needs.build_and_deploy_job.outputs.static_web_app_url }}
+          BROWSER: ${{ matrix.browser }}
+          HEADED: 0
+          TRACE_PATH: ${{ github.workspace }}
+    
+      - name: Upload traces to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }} (${{ matrix.browser }})
+          path: |
+            *.zip
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
