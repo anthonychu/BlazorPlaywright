@@ -1,10 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
-  <Playwright>
-    <BrowserName>chromium</BrowserName>
-    <LaunchOptions>
-      <Headless>false</Headless>
-      <!--<Channel>chrome</Channel>-->
-    </LaunchOptions>
-  </Playwright>
+	<Playwright>
+		<BrowserName>chromium</BrowserName>
+		<LaunchOptions>
+			<Headless>false</Headless>
+			<!--<Channel>chrome</Channel>-->
+		</LaunchOptions>
+	</Playwright>
+	<!--<RunConfiguration>
+		<EnvironmentVariables>
+			<TRACE_PATH>C:\Users\antchu\source\repos\BlazorPlaywright</TRACE_PATH>
+		</EnvironmentVariables>
+	</RunConfiguration>-->
 </RunSettings>

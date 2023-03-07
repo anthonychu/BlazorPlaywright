@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
+using MyApp.Tests;
 using NUnit.Framework;
 
 namespace PlaywrightTests;
@@ -11,14 +12,6 @@ namespace PlaywrightTests;
 [TestFixture]
 public class Tests : PageTest
 {
-    string _tracePath = "";
-    bool _traceEnabled = false;
-    public Tests()
-    {
-        _tracePath = Environment.GetEnvironmentVariable("TRACE_PATH") ?? "";
-        _traceEnabled = !string.IsNullOrEmpty(_tracePath);
-    }
-
     [SetUp]
     public async Task Setup()
     {
@@ -29,16 +22,17 @@ public class Tests : PageTest
     [Test]
     public async Task HomePageHasCorrectTitle()
     {
-        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Hello, world!" })).ToBeVisibleAsync(
-            new LocatorAssertionsToBeVisibleOptions
-            {
-                Timeout = 20000
-            });
+        await using var _ = Page.Context.StartTracingAsync(nameof(HomePageHasCorrectTitle));
+
+        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Hello, world!" }))
+            .ToBeVisibleAsync();
     }
 
     [Test]
     public async Task CounterWorks()
     {
+        await using var _ = Page.Context.StartTracingAsync(nameof(CounterWorks));
+
         await Page.GetByRole(AriaRole.Link, new() { Name = "Counter" }).ClickAsync();
 
         await Page.GetByRole(AriaRole.Button, new() { Name = "Click me" }).ClickAsync(new LocatorClickOptions
@@ -52,15 +46,7 @@ public class Tests : PageTest
     [Test]
     public async Task FetchDataWorks()
     {
-        if (_traceEnabled)
-        {
-            await Page.Context.Tracing.StartAsync(new()
-            {
-                Screenshots = true,
-                Snapshots = true,
-                Sources = true,
-            });
-        }
+        await using var _ = Page.Context.StartTracingAsync(nameof(FetchDataWorks));
 
         var jsonText = @"[
             {
@@ -106,13 +92,6 @@ public class Tests : PageTest
 
         await Expect(Page.Locator("#app > div > main > article > table > tbody > tr:nth-child(1) > td:nth-child(4)")).ToHaveTextAsync("Freezing");
 
-        if (_traceEnabled)
-        {
-            await Page.Context.Tracing.StopAsync(new()
-            {
-                Path = Path.Combine(_tracePath, $"{nameof(FetchDataWorks)}.zip"),
-            });
-        }
     }
 
 }
