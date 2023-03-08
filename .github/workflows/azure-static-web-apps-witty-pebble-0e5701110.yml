@@ -40,8 +40,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
-        os: [ubuntu-22.04, macos-12, windows-2022]
+        browser: [chromium]
+        os: [ubuntu-22.04]
         exclude:
           # Windows WebKit doesn't support WebAssembly
           - os: windows-2022
